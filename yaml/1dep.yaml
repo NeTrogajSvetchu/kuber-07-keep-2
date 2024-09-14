@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dep-1
+  namespace: kub-7
+spec:
+  selector:
+    matchLabels:
+      app: dep-1
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: dep-1
+    spec:
+      nodeSelector:
+         kubernetes.io/hostname: debian
+      containers:
+      - name: busybox
+        image: busybox:1.28
+        command: ['sh', '-c', 'mkdir -p /scp && while true; do echo "$(date) - Test message" >> /scp/success.txt; sleep 5; done']
+        volumeMounts:
+        - name: volume
+          mountPath: /scp
+      - name: multitool
+        image: wbitt/network-multitool
+        command: ['sh', '-c', 'tail -f /scp/success.txt']
+        volumeMounts:
+        - name: volume
+          mountPath: /scp
+      volumes:
+      - name: volume
+        persistentVolumeClaim:
+          claimName: pvc1
