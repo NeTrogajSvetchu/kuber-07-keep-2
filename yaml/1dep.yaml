@@ -13,8 +13,8 @@ spec:
       labels:
         app: dep-1
     spec:
-      nodeSelector:
-         kubernetes.io/hostname: debian
+#      nodeSelector:
+#         kubernetes.io/hostname: localhost
       containers:
       - name: busybox
         image: busybox:1.28

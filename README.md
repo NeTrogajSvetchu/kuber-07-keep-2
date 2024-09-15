@@ -1,180 +1,84 @@
 # kuber-07-keep-2
 
+## Задание 1
+
+```
  kubectl create namespace kub-7
- 
- kubectl apply -n kub-7 -f [1dep.yaml](yaml/1dep.yaml)
+```
+### Запустил файлики
+
+kubectl apply -n kub-7 -f [1dep.yaml](yaml/1dep.yaml)
+
 
  kubectl apply -n kub-7 -f [1pvc.yaml ](yaml/1pvc.yaml)
 
+
  kubectl apply -n kub-7 -f [1pv.yaml](yaml/1pv.yaml)
 
+ ### Произвел проверку запуска *.yaml
+```
  kubectl -n kub-7 get pv
 
  kubectl -n kub-7 get pvc
 
  kubectl -n kub-7 get all
 
- kubectl -n kub-7 get pod # не запускался под статус "Pending"
+ kubectl -n kub-7 get pod
 
  kubectl -n kub-7 describe pod dep-1-db88f79f8-dl4x6 
- # ошибка
  ```
- Warning  FailedScheduling  18s   default-scheduler  0/1 nodes are available: 1 node(s) didn't match Pod's node affinity/selector. preemption: 0/1 nodes are available: 1 Preemption is not helpful for scheduling.
+ ![alt text](png/1.png)
+
+
+### Проверил что идет запись в файлик "success.txt"
+```
+ kubectl -n kub-7 exec -it dep-1-75f5887944-wl2ck -c multitool sh 
 ```
 
+ ![alt text](png/2.png)
+
+
+### Удалил "pvc" и "dep"
 ```
-[kuxar@localhost ~]$  kubectl -n kub-7 describe pod dep-1-5bc4b5f49d-jpswv
-Name:             dep-1-5bc4b5f49d-jpswv
-Namespace:        kub-7
-Priority:         0
-Service Account:  default
-Node:             <none>
-Labels:           app=dep-1
-                  pod-template-hash=5bc4b5f49d
-Annotations:      <none>
-Status:           Pending
-IP:               
-IPs:              <none>
-Controlled By:    ReplicaSet/dep-1-5bc4b5f49d
-Containers:
-  busybox:
-    Image:      busybox:1.28
-    Port:       <none>
-    Host Port:  <none>
-    Command:
-      sh
-      -c
-      mkdir -p /scp && while true; do echo "$(date) - Test message" >> /scp/success.txt; sleep 5; done
-    Environment:  <none>
-    Mounts:
-      /scp from volume (rw)
-      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-ff6xb (ro)
-  multitool:
-    Image:      wbitt/network-multitool
-    Port:       <none>
-    Host Port:  <none>
-    Command:
-      sh
-      -c
-      tail -f /scp/success.txt
-    Environment:  <none>
-    Mounts:
-      /scp from volume (rw)
-      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-ff6xb (ro)
-Conditions:
-  Type           Status
-  PodScheduled   False 
-Volumes:
-  volume:
-    Type:       PersistentVolumeClaim (a reference to a PersistentVolumeClaim in the same namespace)
-    ClaimName:  pvc1
-    ReadOnly:   false
-  kube-api-access-ff6xb:
-    Type:                    Projected (a volume that contains injected data from multiple sources)
-    TokenExpirationSeconds:  3607
-    ConfigMapName:           kube-root-ca.crt
-    ConfigMapOptional:       <nil>
-    DownwardAPI:             true
-QoS Class:                   BestEffort
-Node-Selectors:              kubernetes.io/hostname=debian
-Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
-                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
-Events:
-  Type     Reason            Age   From               Message
-  ----     ------            ----  ----               -------
-  Warning  FailedScheduling  58s   default-scheduler  0/1 nodes are available: 1 node(s) didn't match Pod's node affinity/selector. preemption: 0/1 nodes are available: 1 Preemption is not helpful for scheduling.
+kubectl -n kub-7 delete deployment dep-1
+kubectl -n kub-7 delete pvc pvc1
+kubectl -n kub-7 get pv
+kubectl -n kub-7 describe pv pv1
 ```
+При удалении "pvc" и "dep" - "pv" переходит в состояние "Bound(Failed)" так как некчему подключаться данному волуму. 
+
+![alt text](png/4.png)
+
+Файлы которые записывались на данный пв сохранились
+
+![alt text](png/3.png)
+
+Через некоторое время после запуска пвс и деб пв обратно подключился.
+
+Произвожу удаление пв
+
 ```
-[kuxar@localhost ~]$  kubectl -n kub-7 describe pv pv1
-Name:            pv1
-Labels:          <none>
-Annotations:     pv.kubernetes.io/bound-by-controller: yes
-Finalizers:      [kubernetes.io/pv-protection]
-StorageClass:    local-storage
-Status:          Bound
-Claim:           kub-7/pvc1
-Reclaim Policy:  Delete
-Access Modes:    RWO
-VolumeMode:      Filesystem
-Capacity:        1Gi
-Node Affinity:   <none>
-Message:         
-Source:
-    Type:          HostPath (bare host directory volume)
-    Path:          /scp
-    HostPathType:  
-Events:            <none>
+ kubectl -n kub-7 delete pv pv1
 ```
-```
-[kuxar@localhost ~]$  kubectl -n kub-7 describe pvc pvc1
-Name:          pvc1
-Namespace:     kub-7
-StorageClass:  local-storage
-Status:        Bound
-Volume:        pv1
-Labels:        <none>
-Annotations:   pv.kubernetes.io/bind-completed: yes
-               pv.kubernetes.io/bound-by-controller: yes
-Finalizers:    [kubernetes.io/pvc-protection]
-Capacity:      1Gi
-Access Modes:  RWO
-VolumeMode:    Filesystem
-Used By:       dep-1-5bc4b5f49d-jpswv
-Events:        <none>
-```
-```
-[kuxar@localhost ~]$  kubectl -n kub-7 describe deployment dep-1
-Name:                   dep-1
-Namespace:              kub-7
-CreationTimestamp:      Sat, 14 Sep 2024 11:51:02 +0300
-Labels:                 <none>
-Annotations:            deployment.kubernetes.io/revision: 1
-Selector:               app=dep-1
-Replicas:               1 desired | 1 updated | 1 total | 0 available | 1 unavailable
-StrategyType:           RollingUpdate
-MinReadySeconds:        0
-RollingUpdateStrategy:  25% max unavailable, 25% max surge
-Pod Template:
-  Labels:  app=dep-1
-  Containers:
-   busybox:
-    Image:      busybox:1.28
-    Port:       <none>
-    Host Port:  <none>
-    Command:
-      sh
-      -c
-      mkdir -p /scp && while true; do echo "$(date) - Test message" >> /scp/success.txt; sleep 5; done
-    Environment:  <none>
-    Mounts:
-      /scp from volume (rw)
-   multitool:
-    Image:      wbitt/network-multitool
-    Port:       <none>
-    Host Port:  <none>
-    Command:
-      sh
-      -c
-      tail -f /scp/success.txt
-    Environment:  <none>
-    Mounts:
-      /scp from volume (rw)
-  Volumes:
-   volume:
-    Type:          PersistentVolumeClaim (a reference to a PersistentVolumeClaim in the same namespace)
-    ClaimName:     pvc1
-    ReadOnly:      false
-  Node-Selectors:  kubernetes.io/hostname=debian
-  Tolerations:     <none>
-Conditions:
-  Type           Status  Reason
-  ----           ------  ------
-  Available      False   MinimumReplicasUnavailable
-  Progressing    True    ReplicaSetUpdated
-OldReplicaSets:  <none>
-NewReplicaSet:   dep-1-5bc4b5f49d (1/1 replicas created)
-Events:          <none>
-```
+![alt text](png/5.png)
+
+В моем случае данные которые находились в пв не удалятся так как ом был в режиме
+"persistentVolumeReclaimPolicy: Delete"
+
+если бы он был в режиме "persistentVolumeReclaimPolicy: Recycle" тогда данные будут утеряны
+
+
+### Манифесты :
+
+[1dep.yaml](yaml/1dep.yaml)
+
+[1pvc.yaml ](yaml/1pvc.yaml)
+
+ [1pv.yaml](yaml/1pv.yaml)
+
+## Задание 2
+
+
 Задание 1
 Что нужно сделать
 

@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dep-2
+  namespace: kub-7
+spec:
+  selector:
+    matchLabels:
+      app: dep-2
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: dep-2
+    spec:
+#      nodeSelector:
+#         kubernetes.io/hostname: localhost
+      containers:
+      - name: multitool
+        image: wbitt/network-multitool
+        ports:
+        - containerPort: 8080
+        env: 
+          - name: HTTP_PORT
+            value: "1180"
+        volumeMounts:
+        - name: nfs-volume
+          mountPath: "/scp"
+      volumes:
+      - name: nfs-volume
+        persistentVolumeClaim:
+          claimName: nfs-pvc

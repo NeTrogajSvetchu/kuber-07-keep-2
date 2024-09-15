@@ -10,4 +10,4 @@ spec:
   persistentVolumeReclaimPolicy: Delete
   storageClassName: local-storage
   hostPath:
-    path: /scp # пробовалразные папки
+    path: /scp 
