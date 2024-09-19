@@ -24,9 +24,9 @@ spec:
           - name: HTTP_PORT
             value: "1180"
         volumeMounts:
-        - name: nfs-volume
+        - name: nfs-storage
           mountPath: "/scp"
       volumes:
-      - name: nfs-volume
+      - name: nfs-storage
         persistentVolumeClaim:
-          claimName: nfs-pvc
+          claimName: pvc-nfs

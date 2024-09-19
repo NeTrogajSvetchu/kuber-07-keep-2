@@ -29,7 +29,6 @@ kubectl apply -n kub-7 -f [1dep.yaml](yaml/1dep.yaml)
  ```
  ![alt text](png/1.png)
 
-
 ### Проверил что идет запись в файлик "success.txt"
 ```
  kubectl -n kub-7 exec -it dep-1-75f5887944-wl2ck -c multitool sh 
@@ -37,7 +36,9 @@ kubectl apply -n kub-7 -f [1dep.yaml](yaml/1dep.yaml)
 
  ![alt text](png/2.png)
 
+kubectl -n kub-7 exec -it dep-2-5fdfd9f8fb-47rnj -c multitool sh 
 
+![alt text]({6FBD7A88-32CA-41F2-B571-4AD6A546A4D5}.png)
 ### Удалил "pvc" и "dep"
 ```
 kubectl -n kub-7 delete deployment dep-1
@@ -74,9 +75,61 @@ kubectl -n kub-7 describe pv pv1
 
 [1pvc.yaml ](yaml/1pvc.yaml)
 
- [1pv.yaml](yaml/1pv.yaml)
+[1pv.yaml](yaml/1pv.yaml)
 
 ## Задание 2
+
+### Написал манифесты
+
+kubectl apply -n kub-7 -f [2dep.yaml](yaml/2dep.yaml)
+
+kubectl apply -n kub-7 -f [2pvc.yaml](yaml/2pvc.yaml)
+```
+kubectl -n kub-7 get pods
+```
+
+![alt text](png/6.png)
+
+Ошибка 
+```
+ Warning  FailedMount  5s (x45 over 16h)  kubelet  MountVolume.SetUp failed for volume "pvc-5eab8fbb-6723-478b-89d6-26aae46048e0" : mount failed: exit status 32
+ ```
+```
+sudo microk8s enable nfs
+sudo yum install nfs-utils
+sudo mkdir -p /srv/nfs
+sudo chown nobody:nogroup /srv/nfs
+sudo chmod 0777 /srv/nfs
+sudo mv /etc/exports /etc/exports.bak
+echo '/srv/nfs 10.0.0.0/24(rw,sync,no_subtree_check)' | sudo tee /etc/exports
+sudo systemctl restart nfs*
+```
+Проверка работоспособности манивестов
+```
+kubectl -n kub-7 get pods
+kubectl -n kub-7 get pvc
+kubectl -n kub-7 get pv
+```
+![alt text](png/7.png)
+```
+kubectl -n kub-7 exec -it dep-2-5fdfd9f8fb-47rnj -c multitool sh
+```
+![alt text](png/8.png)
+```
+kubectl -n kub-7 describe pv pvc-5eab8fbb-6723-478b-89d6-26aae46048e0
+```
+![alt text](png/10.png)
+
+![alt text](png/9.png)
+
+### Манифесты :
+
+[2dep.yaml](yaml/2dep.yaml)
+
+[2pvc.yaml](yaml/2pvc.yaml)
+
+#########################################
+
 
 
 Задание 1
